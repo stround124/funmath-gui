@@ -13,6 +13,16 @@
                 "dev",
             ],
             "justMyCode": false
+        },
+        {
+            "name": "Briefcase: Web",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "briefcase",
+            "args": [
+                "run", "web",
+            ],
+            "justMyCode": false
         }
     ]
 }
