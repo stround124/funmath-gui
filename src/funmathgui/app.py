@@ -2,6 +2,7 @@
 Fun Math Application
 """
 import asyncio
+import random
 import toga
 from toga.style.pack import COLUMN, ROW
 from toga.colors import WHITE, rgb
@@ -16,20 +17,133 @@ async def onButtonClick(button):
     curr_menu.clear()
     match button.id:
         case 'exit':
-            lblCaption = toga.Label("Why, oh why are you leaving me?")
+            lblCaption = toga.Label("Why, oh why are you leaving me?", margin=20)
+            curr_menu.add(lblCaption)
             doExit = True
         case _:
             lblCaption = toga.Label(button.text)
+            curr_menu.add(lblCaption)
+            match button.id:
+                case 'add':
+                    lblQuestion = toga.Label(addition(FunMathGUI.level), margin=20)
+                case 'sub':
+                    lblQuestion = toga.Label(subtraction(FunMathGUI.level), margin=20)                   
+                case 'mul':
+                    lblQuestion = toga.Label(multiplication(FunMathGUI.level), margin=20)
+                case 'div':
+                    lblQuestion = toga.Label(division(FunMathGUI.level), margin=20)
+                case _:
+                    lblQuestion = toga.Label("Invalid operation", margin=20)
+            curr_menu.add(lblQuestion)
+            inAnswer = toga.TextInput(on_confirm=checkAnswer, margin = 20)
+            curr_menu.add(inAnswer)
             btnMM = toga.Button("MainMenu", on_press=actionMainMenu)
             curr_menu.add(btnMM)
             doExit = False
-    curr_menu.add(lblCaption)
     if doExit:
         await asyncio.sleep(5)
         exit(0)
 
+async def checkAnswer(widget):
+    if float(widget.value) == float(widget.app.resTrue):
+        await widget.app.main_window.dialog(
+            toga.InfoDialog("Yey!", f"Браво!")
+        )
+    else:
+        await widget.app.main_window.dialog(
+            toga.InfoDialog("Hey!", f"Пак си помисли...")
+        )
+       
+def addition(level):
+    match level:
+        case 1:
+            j = 10
+        case 2:
+            j = 100
+        case 3:
+            j = 1000
+    num1 = random.randint(1, j-1)
+    num2 = random.randint(1, j-1)
+    FunMathGUI.resTrue = num1 + num2
+    return f"Пресметни {num1} + {num2}"
+
+def subtraction(level):
+#     int j;
+#     cout << u8"Изваждане. Ниво " << level << "\n";
+#     switch (level) {
+#     case 1:
+#         j = 10;
+#         break;
+#     case 2:
+#         j = 100;
+#         break;
+#     case 3:
+#         j = 1000;
+#         break;
+#     }
+#     int num1 = rand() % j;
+#     int num2 = rand() % j;
+#     if(num2>num1)
+#     {
+#         int temp=num1;
+#         num1=num2;
+#         num1=temp;
+#     }
+#     resTrue = num1;
+    return f"" #f"Пресметни {num2+num1} - {num2}"
+
+def multiplication(level):
+#     int j;
+#     cout << u8"Умножение. Ниво " << level << "\n";
+#     switch (level) {
+#     case 1:
+#         j = 10;
+#         break;
+#     case 2:
+#         j = 100;
+#         break;
+#     case 3:
+#         j = 1000;
+#         break;
+#     }
+#     int num1 = rand() % j;
+#     int num2 = rand() % j;
+#     resTrue = num1*num2;
+    return f"" #f"Пресметни {num1} x {num2}"
+
+def division(level):
+#     // num1/num2=res => num1=res*num2  
+#     int j=0,k=0;
+#     double d=0;
+#     cout << u8"Деление. Ниво " << level << "\n";
+#     switch (level) {
+#     case 1: # xx/y=z; =1..9; z=1..9
+#         j = 9;
+#         k = 9;
+#         d = 1;
+#         break;
+#     case 2: # xxx/yy=z; y=1..99; z=1..9
+#         j = 99;
+#         k = 9;
+#         d = 1;
+#         break;
+#     case 3: # xxxx/yy=z.zz
+#         j = 99;
+#         k = 1000;
+#         d = 0.01;
+#         break;
+#     }
+#     int num2 = (rand() % (j - 1)) + 1; #не може да се дели на 0, затова num2 е от 1 до j
+#     resTrue = (rand() % k) * d;
+    return f"" #f"Пресметни {resTrue*num2} / {num2}"
+
 class FunMathGUI(toga.App):
+    resTrue = 0
+    level = 1
+
     def startup(self):
+        random.seed()
+
         self.canvas_logo = toga.Canvas(
             flex=1,
             on_resize=self.on_resize,
