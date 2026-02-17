@@ -1,6 +1,7 @@
 """
 Fun Math Application
 """
+
 import asyncio
 import random
 import toga
@@ -8,6 +9,9 @@ from toga.style.pack import COLUMN, ROW
 from toga.colors import WHITE, rgb
 from toga.fonts import SANS_SERIF
 from toga.constants import Baseline
+
+global choice
+choice = 0
 
 def actionMainMenu(button):
     FunMathGUI.main_menu(button.app)
@@ -49,12 +53,22 @@ async def checkAnswer(widget):
         await widget.app.main_window.dialog(
             toga.InfoDialog("Yey!", f"Браво!")
         )
+        match choice:
+            case 1:
+                addition(FunMathGUI.level)
+            case 2:
+                subtraction(FunMathGUI.level)
+            case 3:
+                multiplication(FunMathGUI.level)
+            case 4:
+                division(FunMathGUI.level)
     else:
         await widget.app.main_window.dialog(
             toga.InfoDialog("Hey!", f"Пак си помисли...")
         )
        
 def addition(level):
+    choice = 1
     match level:
         case 1:
             j = 10
@@ -68,6 +82,20 @@ def addition(level):
     return f"Пресметни {num1} + {num2}"
 
 def subtraction(level):
+    choice = 2
+    match level:
+        case 1:
+            j = 10
+        case 2:
+            j = 100
+        case 3:
+            j = 1000
+    num1 = random.randint(1, j-1)
+    num2 = random.randint(1, j-1)
+    if num2 > num1:
+        num1, num2 = num2, num1
+    FunMathGUI.resTrue = num1 - num2
+    return f"Пресметни {num1} - {num2}"
 #     int j;
 #     cout << u8"Изваждане. Ниво " << level << "\n";
 #     switch (level) {
@@ -93,6 +121,18 @@ def subtraction(level):
     return f"" #f"Пресметни {num2+num1} - {num2}"
 
 def multiplication(level):
+    choice = 3
+    match level:
+        case 1:
+            j = 10
+        case 2:
+            j = 100
+        case 3: 
+            j = 1000
+    num1 = random.randint(1, j-1)
+    num2 = random.randint(1, j-1)
+    FunMathGUI.resTrue = num1 * num2
+    return f"Пресметни {num1} x {num2}"
 #     int j;
 #     cout << u8"Умножение. Ниво " << level << "\n";
 #     switch (level) {
@@ -109,9 +149,23 @@ def multiplication(level):
 #     int num1 = rand() % j;
 #     int num2 = rand() % j;
 #     resTrue = num1*num2;
-    return f"" #f"Пресметни {num1} x {num2}"
 
 def division(level):
+    choice = 4
+    match level:
+        case 1:
+            j = 10
+        case 2:
+            j = 100
+        case 3:
+            j = 100
+
+    num2 = random.randint(1, j-1)
+    result = random.randint(1, j-1)
+    num1 = num2 * result
+    FunMathGUI.resTrue = result
+    return f"Пресметни {num1} / {num2}"
+
 #     // num1/num2=res => num1=res*num2  
 #     int j=0,k=0;
 #     double d=0;
