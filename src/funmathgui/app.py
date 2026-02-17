@@ -2,18 +2,13 @@
 Fun Math Application
 """
 
-
 import asyncio
-import random
 import random
 import toga
 from toga.style.pack import COLUMN, ROW
 from toga.colors import WHITE, rgb
 from toga.fonts import SANS_SERIF
 from toga.constants import Baseline
-
-global choice
-choice = 0
 
 global choice
 choice = 0
@@ -204,12 +199,7 @@ class FunMathGUI(toga.App):
     resTrue = 0
     level = 1
 
-    resTrue = 0
-    level = 1
-
     def startup(self):
-        random.seed()
-
         random.seed()
 
         self.canvas_logo = toga.Canvas(
@@ -288,4 +278,3 @@ class FunMathGUI(toga.App):
 
 def main():
     return FunMathGUI()
-
