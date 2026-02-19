@@ -1,63 +1,35 @@
 """
 Fun Math Application
 """
-
 import asyncio
-import os
 import random
-import subprocess
-
 import toga
 from toga.style.pack import COLUMN, ROW
 from toga.colors import WHITE, rgb
 from toga.fonts import SANS_SERIF
 from toga.constants import Baseline
 
-if os.name == 'nt':
-    import subprocess,signal
-
-def kill_app():
-    if os.name == 'nt':
-        # os.kill with CTRL_C_EVENT only works in a console process group.
-        # If that fails we fall back to the generic taskkill routine.
-        try:
-            os.kill(os.getpid(), signal.CTRL_C_EVENT)
-        except Exception:
-            subprocess.run(["taskkill", "/f", "/im", "python.exe"])
-    else:
-        # send SIGINT to self, equivalent to pressing Ctrl+C
-        os.kill(os.getpid(), signal.SIGINT)
-
-def kill_python_processes():
-    if os.name == 'nt':
-        subprocess.run(["taskkill", "/f", "/im", "python.exe"])
-    else:
-        subprocess.run(["pkill", "-f", "python"])
-
-
 def actionMainMenu(button):
-    FunMathGUI.main_menu(button.app)
+    button.app.main_menu()
 
-async def onButtonClick(button):
+def onButtonClick(button):
     curr_menu = button.parent
     curr_menu.clear()
     match button.id:
         case 'exit':
-            lblCaption = toga.Label("Как смееш да ме оставяш?", margin=20)
-            curr_menu.add(lblCaption)
-            doExit = True
+            curr_menu.app.main_window.close()
         case _:
             lblCaption = toga.Label(button.text + f" | Ниво {curr_menu.app.level}")
             curr_menu.add(lblCaption)
             match button.id:
                 case 'add':
-                    lblQuestion = toga.Label(addition(curr_menu.app.level), margin=20)
+                    lblQuestion = toga.Label(addition(curr_menu.app), margin=20)
                 case 'sub':
-                    lblQuestion = toga.Label(subtraction(curr_menu.app.level), margin=20)                   
+                    lblQuestion = toga.Label(subtraction(curr_menu.app), margin=20)                   
                 case 'mul':
-                    lblQuestion = toga.Label(multiplication(curr_menu.app.level), margin=20)
+                    lblQuestion = toga.Label(multiplication(curr_menu.app), margin=20)
                 case 'div':
-                    lblQuestion = toga.Label(division(curr_menu.app.level), margin=20)
+                    lblQuestion = toga.Label(division(curr_menu.app), margin=20)
                 case _:
                     lblQuestion = toga.Label("Invalid operation", margin=20)
             curr_menu.add(lblQuestion)
@@ -65,15 +37,6 @@ async def onButtonClick(button):
             curr_menu.add(inAnswer)
             btnMM = toga.Button("Главно меню", on_press=actionMainMenu, margin=20)
             curr_menu.add(btnMM)
-            doExit = False
-    if doExit:
-        await asyncio.sleep(5)
-        if os.name == 'nt':
-            kill_app()
-            await asyncio.sleep(1)
-            kill_python_processes()
-        else:
-            exit(0)
 
 async def checkAnswer(widget):
     if float(widget.value) == float(widget.app.resTrue):
@@ -85,8 +48,8 @@ async def checkAnswer(widget):
             toga.InfoDialog("Hey!", f"Пак си помисли...")
         )
        
-def addition(level):
-    match level:
+def addition(app):
+    match app.level:
         case 1:
             j = 10
         case 2:
@@ -95,11 +58,11 @@ def addition(level):
             j = 1000
     num1 = random.randint(1, j-1)
     num2 = random.randint(1, j-1)
-    FunMathGUI.resTrue = num1 + num2
+    app.resTrue = num1 + num2
     return f"Пресметни {num1} + {num2}"
 
-def subtraction(level):
-    match level:
+def subtraction(app):
+    match app.level:
         case 1:
             j = 10
         case 2:
@@ -110,34 +73,11 @@ def subtraction(level):
     num2 = random.randint(1, j-1)
     if num2 > num1:
         num1, num2 = num2, num1
-    FunMathGUI.resTrue = num1 - num2
+    app.resTrue = num1 - num2
     return f"Пресметни {num1} - {num2}"
-#     int j;
-#     cout << u8"Изваждане. Ниво " << level << "\n";
-#     switch (level) {
-#     case 1:
-#         j = 10;
-#         break;
-#     case 2:
-#         j = 100;
-#         break;
-#     case 3:
-#         j = 1000;
-#         break;
-#     }
-#     int num1 = rand() % j;
-#     int num2 = rand() % j;
-#     if(num2>num1)
-#     {
-#         int temp=num1;
-#         num1=num2;
-#         num1=temp;
-#     }
-#     resTrue = num1;
-    return f"" #f"Пресметни {num2+num1} - {num2}"
 
-def multiplication(level):
-    match level:
+def multiplication(app):
+    match app.level:
         case 1:
             j = 10
         case 2:
@@ -146,64 +86,23 @@ def multiplication(level):
             j = 1000
     num1 = random.randint(1, j-1)
     num2 = random.randint(1, j-1)
-    FunMathGUI.resTrue = num1 * num2
+    app.resTrue = num1 * num2
     return f"Пресметни {num1} x {num2}"
-#     int j;
-#     cout << u8"Умножение. Ниво " << level << "\n";
-#     switch (level) {
-#     case 1:
-#         j = 10;
-#         break;
-#     case 2:
-#         j = 100;
-#         break;
-#     case 3:
-#         j = 1000;
-#         break;
-#     }
-#     int num1 = rand() % j;
-#     int num2 = rand() % j;
-#     resTrue = num1*num2;
 
-def division(level):
-    match level:
+def division(app):
+    match app.level:
         case 1:
             j = 10
         case 2:
             j = 100
         case 3:
-            j = 100
+            j = 1000
 
     num2 = random.randint(1, j-1)
     result = random.randint(1, j-1)
     num1 = num2 * result
-    FunMathGUI.resTrue = result
+    app.resTrue = result
     return f"Пресметни {num1} / {num2}"
-
-#     // num1/num2=res => num1=res*num2  
-#     int j=0,k=0;
-#     double d=0;
-#     cout << u8"Деление. Ниво " << level << "\n";
-#     switch (level) {
-#     case 1: # xx/y=z; =1..9; z=1..9
-#         j = 9;
-#         k = 9;
-#         d = 1;
-#         break;
-#     case 2: # xxx/yy=z; y=1..99; z=1..9
-#         j = 99;
-#         k = 9;
-#         d = 1;
-#         break;
-#     case 3: # xxxx/yy=z.zz
-#         j = 99;
-#         k = 1000;
-#         d = 0.01;
-#         break;
-#     }
-#     int num2 = (rand() % (j - 1)) + 1; #не може да се дели на 0, затова num2 е от 1 до j
-#     resTrue = (rand() % k) * d;
-    return f"" #f"Пресметни {resTrue*num2} / {num2}"
 
 def onLevelChange(widget):
     widget.app.level = int(widget.value)
@@ -215,7 +114,6 @@ class FunMathGUI(toga.App):
 
     def startup(self):
         random.seed()
-
         self.canvas_logo = toga.Canvas(
             flex=1,
             on_resize=self.on_resize,
@@ -288,7 +186,12 @@ class FunMathGUI(toga.App):
         await self.main_window.dialog(
             toga.InfoDialog("Хмм!", "Ти защо цъкаш тук?")
         )
-
+    
+    async def on_exit(self):
+        await self.main_window.dialog(
+            toga.InfoDialog("ЕЕЕ!", "Ти сериозно ли си тръгваш? Ще ми липсваш!")
+        )
+        return True
 
 def main():
     return FunMathGUI()
