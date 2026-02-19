@@ -43,27 +43,27 @@ async def onButtonClick(button):
     curr_menu.clear()
     match button.id:
         case 'exit':
-            lblCaption = toga.Label("Why, oh why are you leaving me?", margin=20)
+            lblCaption = toga.Label("Как смееш да ме оставяш?", margin=20)
             curr_menu.add(lblCaption)
             doExit = True
         case _:
-            lblCaption = toga.Label(button.text)
+            lblCaption = toga.Label(button.text + f" | Ниво {curr_menu.app.level}")
             curr_menu.add(lblCaption)
             match button.id:
                 case 'add':
-                    lblQuestion = toga.Label(addition(FunMathGUI.level), margin=20)
+                    lblQuestion = toga.Label(addition(curr_menu.app.level), margin=20)
                 case 'sub':
-                    lblQuestion = toga.Label(subtraction(FunMathGUI.level), margin=20)                   
+                    lblQuestion = toga.Label(subtraction(curr_menu.app.level), margin=20)                   
                 case 'mul':
-                    lblQuestion = toga.Label(multiplication(FunMathGUI.level), margin=20)
+                    lblQuestion = toga.Label(multiplication(curr_menu.app.level), margin=20)
                 case 'div':
-                    lblQuestion = toga.Label(division(FunMathGUI.level), margin=20)
+                    lblQuestion = toga.Label(division(curr_menu.app.level), margin=20)
                 case _:
                     lblQuestion = toga.Label("Invalid operation", margin=20)
             curr_menu.add(lblQuestion)
-            inAnswer = toga.TextInput(on_confirm=checkAnswer, margin = 20)
+            inAnswer = toga.TextInput(on_confirm=checkAnswer, margin=20)
             curr_menu.add(inAnswer)
-            btnMM = toga.Button("MainMenu", on_press=actionMainMenu)
+            btnMM = toga.Button("Главно меню", on_press=actionMainMenu, margin=20)
             curr_menu.add(btnMM)
             doExit = False
     if doExit:
@@ -205,6 +205,10 @@ def division(level):
 #     resTrue = (rand() % k) * d;
     return f"" #f"Пресметни {resTrue*num2} / {num2}"
 
+def onLevelChange(widget):
+    widget.app.level = int(widget.value)
+    widget.app.widgets['lblLevel'].text = f"Ниво на трудност: {widget.app.level}"
+
 class FunMathGUI(toga.App):
     resTrue = 0
     level = 1
@@ -237,11 +241,15 @@ class FunMathGUI(toga.App):
     def main_menu(self):
         curr_menu = self.main_view
         curr_menu.clear()
-        btnAdd = toga.Button("Addition", id="add", on_press=onButtonClick)
-        btnSub = toga.Button("Subtraction", id="sub", on_press=onButtonClick)
-        btnMul = toga.Button("Multiplication", id="mul", on_press=onButtonClick)
-        btnDiv = toga.Button("Division", id="div", on_press=onButtonClick)
-        btnExit = toga.Button("Exit", id="exit", on_press=onButtonClick) 
+        lblLevel = toga.Label(text=f"Ниво на трудност: {self.level}", id='lblLevel')
+        sldLevel = toga.Slider(value=self.level, min=1, max=3, tick_count=3, on_change=onLevelChange, margin_bottom=20)
+        btnAdd = toga.Button("Събиране", id="add", on_press=onButtonClick)
+        btnSub = toga.Button("Изваждане", id="sub", on_press=onButtonClick)
+        btnMul = toga.Button("Умножение", id="mul", on_press=onButtonClick)
+        btnDiv = toga.Button("Деление", id="div", on_press=onButtonClick)
+        btnExit = toga.Button("Изход", id="exit", on_press=onButtonClick, margin_top=20)
+        curr_menu.add(lblLevel)
+        curr_menu.add(sldLevel)
         curr_menu.add(btnAdd)
         curr_menu.add(btnSub)
         curr_menu.add(btnMul)
@@ -278,7 +286,7 @@ class FunMathGUI(toga.App):
 
     async def on_press(self, widget, x, y, **kwargs):
         await self.main_window.dialog(
-            toga.InfoDialog("Hey!", f"You've got no business here:({x}, {y})")
+            toga.InfoDialog("Хмм!", "Ти защо цъкаш тук?")
         )
 
 
