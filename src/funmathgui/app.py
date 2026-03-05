@@ -2,6 +2,7 @@
 Fun Math Application
 """
 import asyncio
+import fractions
 import random
 import toga
 from toga.style.pack import COLUMN, ROW
@@ -16,20 +17,25 @@ def onButtonClick(button):
     curr_menu = button.parent
     curr_menu.clear()
     match button.id:
-        case 'exit':
+        case 'btnExit':
             curr_menu.app.main_window.close()
         case _:
             lblCaption = toga.Label(button.text + f" | Ниво {curr_menu.app.level}")
             curr_menu.add(lblCaption)
+            curr_menu.app.doRetry = 3
             match button.id:
-                case 'add':
-                    lblQuestion = toga.Label(addition(curr_menu.app), margin=20)
-                case 'sub':
-                    lblQuestion = toga.Label(subtraction(curr_menu.app), margin=20)                   
-                case 'mul':
-                    lblQuestion = toga.Label(multiplication(curr_menu.app), margin=20)
-                case 'div':
-                    lblQuestion = toga.Label(division(curr_menu.app), margin=20)
+                case 'btnAdd':
+                    lblQuestion = toga.Label(askAddition(curr_menu.app), margin=20)
+                case 'btnSub':
+                    lblQuestion = toga.Label(askSubtraction(curr_menu.app), margin=20)                   
+                case 'btnMul':
+                    lblQuestion = toga.Label(askMultiplication(curr_menu.app), margin=20)
+                case 'btnDiv':
+                    lblQuestion = toga.Label(askDivision(curr_menu.app), margin=20)
+                case 'btnFrac':
+                    lblQuestion = toga.Label(askFractions(curr_menu.app), margin=20)
+                case 'btnX':
+                    lblQuestion = toga.Label(askX(curr_menu.app), margin=20)
                 case _:
                     lblQuestion = toga.Label("Invalid operation", margin=20)
             curr_menu.add(lblQuestion)
@@ -37,18 +43,48 @@ def onButtonClick(button):
             curr_menu.add(inAnswer)
             btnMM = toga.Button("Главно меню", on_press=actionMainMenu, margin=20)
             curr_menu.add(btnMM)
+            inAnswer.focus()
 
 async def checkAnswer(widget):
-    if float(widget.value) == float(widget.app.resTrue):
+    try:
+        user_input = widget.value.strip()
+
+        # Ако има дроб (пример 1/2)
+        if "/" in user_input:
+            user_value = float(fractions.Fraction(user_input))
+        else:
+            user_value = float(user_input)
+
+        if abs(user_value - float(widget.app.resTrue)) < 0.01:
+            await widget.app.main_window.dialog(
+                toga.InfoDialog("Йее!", "Браво!")
+            )
+            widget.app.doRetry = 0
+            actionMainMenu(widget)
+            return
+
+    except:
         await widget.app.main_window.dialog(
-            toga.InfoDialog("Yay!", f"Браво!")
+            toga.InfoDialog("Грешка", "Моля въведи число или дроб (пример: 1/2)")
         )
+        return
+
+    match widget.app.doRetry:
+        case 3: sMsg = "Пробвай се отново!"
+        case 2: sMsg = "Още два пъти и може да уцелиш!"
+        case 1: sMsg = "Давам ти последен шанс!"
+        case 0: sMsg = "Затваряй компютъра и си отваряй учебника!"
+
+    await widget.app.main_window.dialog(
+        toga.InfoDialog("Не!", sMsg)
+    )
+
+    if widget.app.doRetry > 0:
+        widget.app.doRetry -= 1
     else:
-        await widget.app.main_window.dialog(
-            toga.InfoDialog("Hey!", f"Пак си помисли...")
-        )
-       
-def addition(app):
+        actionMainMenu(widget)
+        
+def askAddition(app):
     match app.level:
         case 1:
             j = 10
@@ -61,7 +97,7 @@ def addition(app):
     app.resTrue = num1 + num2
     return f"Пресметни {num1} + {num2}"
 
-def subtraction(app):
+def askSubtraction(app):
     match app.level:
         case 1:
             j = 10
@@ -76,7 +112,7 @@ def subtraction(app):
     app.resTrue = num1 - num2
     return f"Пресметни {num1} - {num2}"
 
-def multiplication(app):
+def askMultiplication(app):
     match app.level:
         case 1:
             j = 10
@@ -89,7 +125,7 @@ def multiplication(app):
     app.resTrue = num1 * num2
     return f"Пресметни {num1} x {num2}"
 
-def division(app):
+def askDivision(app):
     match app.level:
         case 1:
             j = 10
@@ -104,29 +140,75 @@ def division(app):
     app.resTrue = result
     return f"Пресметни {num1} / {num2}"
 
+def askFractions(app):
+    match app.level:
+        case 1:
+            j = 10
+        case 2:
+            j = 100
+        case 3:
+            j = 1000
+    num1 = random.randint(1, j-1)
+    num2 = random.randint(1, j-1)
+    num3 = random.randint(1, j-1)
+    num4 = random.randint(1, j-1)
+    app.resTrue = (num1/num2) + (num3/num4)
+    return f"Пресметни {num1}/{num2} + {num3}/{num4}"
+
+def askX(app):
+    match app.level:
+        case 1:
+            j = 10
+        case 2:
+            j = 100
+        case 3:
+            j = 1000
+    num1 = random.randint(1, j-1)
+    num2 = random.randint(1, j-1)
+    rand = random.randint(1, 4) 
+    
+    match random.randint(1,4):
+        case 1:
+            app.resTrue = num2 - num1
+            return f"Пресметни x + {num1} = {num2}"
+        case 2:
+            app.resTrue = num2 + num1
+            return f"Пресметни x - {num1} = {num2}"
+        case 3:
+            app.resTrue = num2 / num1
+            return f"Пресметни x * {num1} = {num2}"
+        case 4:
+            app.resTrue = num1 * num2
+            return f"Пресметни x / {num1} = {num2}"
+
 def onLevelChange(widget):
     widget.app.level = int(widget.value)
     widget.app.widgets['lblLevel'].text = f"Ниво на трудност: {widget.app.level}"
 
 class FunMathGUI(toga.App):
     resTrue = 0
+    doRetry = 0
     level = 1
 
     def startup(self):
         random.seed()
+        self.bg_img = toga.Image(self.paths.app / "resources/einstein_math.jpg")
+        self.bg_imgview = toga.ImageView(self.bg_img, height = 240, flex = 1)
         self.canvas_logo = toga.Canvas(
             flex=1,
             on_resize=self.on_resize,
             on_press=self.on_press,            
         )
+        self.logo_view = toga.Box(direction=COLUMN, margin=20)
         self.main_view = toga.Box(direction=COLUMN, margin=50)
 
         self.draw_logo()
         self.main_menu()
 
-        container_left = toga.ScrollContainer(horizontal=False)
+        container_left = self.logo_view
         container_right = toga.ScrollContainer(horizontal=False)
-        container_left.content = self.canvas_logo
+        container_left.add(self.canvas_logo)
+        container_left.add(self.bg_imgview)
         container_right.content = self.main_view
 
         split_main = toga.SplitContainer()
@@ -135,31 +217,40 @@ class FunMathGUI(toga.App):
         self.main_window = toga.Window(title=self.formal_name)
         self.main_window.content = split_main
         self.main_window.show()
+        self.enter_presentation_mode([self.main_window])
+
     
     def main_menu(self):
         curr_menu = self.main_view
         curr_menu.clear()
         lblLevel = toga.Label(text=f"Ниво на трудност: {self.level}", id='lblLevel')
-        sldLevel = toga.Slider(value=self.level, min=1, max=3, tick_count=3, on_change=onLevelChange, margin_bottom=20)
-        btnAdd = toga.Button("Събиране", id="add", on_press=onButtonClick)
-        btnSub = toga.Button("Изваждане", id="sub", on_press=onButtonClick)
-        btnMul = toga.Button("Умножение", id="mul", on_press=onButtonClick)
-        btnDiv = toga.Button("Деление", id="div", on_press=onButtonClick)
-        btnExit = toga.Button("Изход", id="exit", on_press=onButtonClick, margin_top=20)
+        sldLevel = toga.Slider(value=self.level, min=1, max=3, tick_count=3, on_change=onLevelChange, margin=5, margin_bottom=20)
+        btnAdd   = toga.Button("Събиране", id="btnAdd", on_press=onButtonClick, margin=5)
+        btnSub   = toga.Button("Изваждане", id="btnSub", on_press=onButtonClick, margin=5)
+        btnMul   = toga.Button("Умножение", id="btnMul", on_press=onButtonClick, margin=5)
+        btnDiv   = toga.Button("Деление", id="btnDiv", on_press=onButtonClick, margin=5)
+        btnDrobi = toga.Button("Дроби", id="btnFrac", on_press=onButtonClick, margin=5, margin_top=20)
+        btnX     = toga.Button("Задачи с X", id="btnX", on_press=onButtonClick, margin=5)
+        btnExit  = toga.Button("Изход", id="btnExit", on_press=onButtonClick, margin=5, margin_top=20)
+        #curr_menu.add(self.bg_imgview)
         curr_menu.add(lblLevel)
         curr_menu.add(sldLevel)
         curr_menu.add(btnAdd)
         curr_menu.add(btnSub)
         curr_menu.add(btnMul)
         curr_menu.add(btnDiv)
+        curr_menu.add(btnDrobi)
+        curr_menu.add(btnX)
         curr_menu.add(btnExit)
+        btnAdd.focus()
 
     def draw_logo(self):
+        
         font = toga.Font(family=SANS_SERIF, size=20)
         self.text_width, text_height = self.canvas_logo.measure_text("Fun Math GUI", font)
 
         x = (150 - self.text_width) // 2
-        y = 175
+        y = 10
 
         with self.canvas_logo.Stroke(color="CYAN", line_width=4.0) as rect_stroker:
             self.text_border = rect_stroker.rect(
@@ -184,7 +275,7 @@ class FunMathGUI(toga.App):
 
     async def on_press(self, widget, x, y, **kwargs):
         await self.main_window.dialog(
-            toga.InfoDialog("Хмм!", "Ти защо цъкаш тук?")
+            toga.InfoDialog("Хмм?", "Ти защо цъкаш тук?")
         )
     
     async def on_exit(self):
